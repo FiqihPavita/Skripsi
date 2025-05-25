@@ -13,20 +13,13 @@ from sklearn.metrics import mean_squared_error
 # 0. Helper Functions and Classes (with updated plot colors)
 # -----------------------------------------------------------------------------
 
-# --- Definisi Warna Tema Gelap ---
-# Latar belakang: Biru Dongker / Navy
-BG_COLOR = "#1A202C" 
-# Warna Konten/Kartu: Sedikit lebih terang dari BG
-CONTENT_BG_COLOR = "#2D3748" 
-# Warna Teks Utama: Putih keabu-abuan
-TEXT_COLOR = "#E2E8F0"
-# Warna Judul & Aksen: Biru Terang
-ACCENT_COLOR = "#90CDF4"
-# Warna Garis Grafik Utama
-PLOT_LINE_COLOR = "#63B3ED"
-# Warna Grid & Garis Sekunder
-PLOT_GRID_COLOR = "#4A5568"
-
+# --- Definisi Warna Tema (Kembali ke tema terang sesuai kode awal) ---
+BG_COLOR_LIGHT = "#F0F8FF"
+CONTENT_BG_COLOR_LIGHT = "#FFFFFF"
+TEXT_COLOR_LIGHT = "#003B5C"
+ACCENT_COLOR_LIGHT = "#0072B2"
+PLOT_LINE_COLOR_LIGHT = "#0072B2"
+PLOT_GRID_COLOR_LIGHT = "#DDDDDD"
 
 class DataPreprocessing:
     def __init__(self, data_column_name='IHK', feature_range=(0, 1)):
@@ -50,28 +43,17 @@ class DataPreprocessing:
     def denormalize(self, normalized_data):
         return self.scaler.inverse_transform(normalized_data)
 
-def plot_acf_pacf_streamlit(series, lags=20, series_name="Series"):
-    fig, axes = plt.subplots(2, 1, figsize=(10, 7), facecolor=CONTENT_BG_COLOR)
+# REVISI 1: Fungsi plot sekarang hanya untuk PACF
+def plot_pacf_only_streamlit(series, lags=20, series_name="Series"):
+    fig, ax = plt.subplots(1, 1, figsize=(10, 4.5))
+    fig.patch.set_alpha(0)
+    ax.patch.set_alpha(0)
     
-    # ACF Plot
-    plot_acf(series, lags=lags, ax=axes[0], color=PLOT_LINE_COLOR, vlines_kwargs={"colors": PLOT_GRID_COLOR})
-    axes[0].set_title(f'Autocorrelation Function (ACF) - {series_name}', color=TEXT_COLOR)
-    axes[0].tick_params(colors=TEXT_COLOR, labelcolor=TEXT_COLOR)
-    axes[0].xaxis.label.set_color(TEXT_COLOR)
-    axes[0].yaxis.label.set_color(TEXT_COLOR)
-    axes[0].set_facecolor(CONTENT_BG_COLOR)
-    for spine in axes[0].spines.values():
-        spine.set_edgecolor(PLOT_GRID_COLOR)
-
-    # PACF Plot
-    plot_pacf(series, lags=lags, ax=axes[1], method='ywm', color=PLOT_LINE_COLOR, vlines_kwargs={"colors": PLOT_GRID_COLOR})
-    axes[1].set_title(f'Partial Autocorrelation Function (PACF) - {series_name}', color=TEXT_COLOR)
-    axes[1].tick_params(colors=TEXT_COLOR, labelcolor=TEXT_COLOR)
-    axes[1].xaxis.label.set_color(TEXT_COLOR)
-    axes[1].yaxis.label.set_color(TEXT_COLOR)
-    axes[1].set_facecolor(CONTENT_BG_COLOR)
-    for spine in axes[1].spines.values():
-        spine.set_edgecolor(PLOT_GRID_COLOR)
+    plot_pacf(series, lags=lags, ax=ax, method='ywm', color=PLOT_LINE_COLOR_LIGHT, vlines_kwargs={"colors": PLOT_LINE_COLOR_LIGHT})
+    ax.set_title(f'Partial Autocorrelation Function (PACF) - {series_name}', color=TEXT_COLOR_LIGHT)
+    ax.tick_params(colors=TEXT_COLOR_LIGHT)
+    ax.xaxis.label.set_color(TEXT_COLOR_LIGHT)
+    ax.yaxis.label.set_color(TEXT_COLOR_LIGHT)
     
     plt.tight_layout()
     return fig
@@ -179,83 +161,17 @@ def predict_future(model, initial_data_normalized, lags, steps, normalizer):
 # -----------------------------------------------------------------------------
 st.set_page_config(page_title="📈 Prediksi IHK RBFNN", layout="wide", initial_sidebar_state="collapsed")
 
-# Custom CSS for new dark theme
+# Custom CSS
 st.markdown(f"""
 <style>
-    /* Main app background */
-    body {{
-        color: {TEXT_COLOR};
-    }}
-    .stApp {{
-        background-color: {BG_COLOR};
-    }}
-    /* Main content area */
-    .main .block-container {{
-        background-color: {CONTENT_BG_COLOR};
-        border-radius: 10px;
-        padding: 2rem;
-        box-shadow: 0 4px 8px rgba(0,0,0,0.3);
-        border: 1px solid {PLOT_GRID_COLOR};
-    }}
-    /* Titles */
-    h1, h2, h3, h4, h5, h6 {{
-        color: {ACCENT_COLOR};
-    }}
-    /* Buttons */
-    .stButton>button {{
-        background-color: #3182CE;
-        color: white;
-        border-radius: 5px;
-        border: 1px solid #2B6CB0;
-        padding: 0.5rem 1rem;
-    }}
-    .stButton>button:hover {{
-        background-color: #2B6CB0;
-        color: white;
-    }}
-    .stButton>button:focus {{
-        outline: none !important;
-        box-shadow: 0 0 0 0.2rem rgba(49,130,206,.5) !important;
-    }}
-    /* Navigation Buttons */
-    div[data-testid="stHorizontalBlock"] > div[data-testid^="stVerticalBlock"] > div[data-testid^="stButton"] > button {{
-        width: 100%;
-        background-color: transparent;
-        color: #A0AEC0;
-        border: 1px solid {PLOT_GRID_COLOR};
-    }}
-    div[data-testid="stHorizontalBlock"] > div[data-testid^="stVerticalBlock"] > div[data-testid^="stButton"] > button:hover {{
-        background-color: {PLOT_GRID_COLOR};
-        color: #FFFFFF;
-    }}
-    /* Sidebar styling */
-    [data-testid="stSidebar"] {{
-        background-color: {CONTENT_BG_COLOR};
-        padding: 10px;
-        border-right: 1px solid {PLOT_GRID_COLOR};
-    }}
-    [data-testid="stSidebar"] h1, [data-testid="stSidebar"] h2, [data-testid="stSidebar"] h3 {{
-        color: {ACCENT_COLOR};
-    }}
-    [data-testid="stSidebar"] .st-emotion-cache-16txtl3 {{
-        color: {TEXT_COLOR};
-    }}
-    /* Input widgets */
-    .stTextInput input, .stNumberInput input, .stSelectbox div[data-baseweb="select"] > div {{
-        background-color: {BG_COLOR} !important;
-        color: {TEXT_COLOR} !important;
-        border: 1px solid {PLOT_GRID_COLOR} !important;
-        border-radius: 5px;
-    }}
-    /* Dataframe styling */
-    .stDataFrame {{
-        border: 1px solid {PLOT_GRID_COLOR};
-        border-radius: 5px;
-    }}
-    /* Markdown links */
-    a {{
-        color: #63B3ED;
-    }}
+    .stApp {{ background-color: {BG_COLOR_LIGHT}; }}
+    .main .block-container {{ background-color: {CONTENT_BG_COLOR_LIGHT}; border-radius: 10px; padding: 2rem; box-shadow: 0 4px 8px rgba(0,0,0,0.1); }}
+    h1, h2, h3, h4, h5, h6 {{ color: {ACCENT_COLOR_LIGHT}; }}
+    .stButton>button {{ background-color: {ACCENT_COLOR_LIGHT}; color: white; border-radius: 5px; border: 1px solid #005A8C; padding: 0.5rem 1rem; }}
+    .stButton>button:hover {{ background-color: #005A8C; color: white; }}
+    div[data-testid="stHorizontalBlock"] > div[data-testid^="stVerticalBlock"] > div[data-testid^="stButton"] > button {{ width: 100%; background-color: #E6F3FF; color: {ACCENT_COLOR_LIGHT}; border: 1px solid #ADD8E6; }}
+    div[data-testid="stHorizontalBlock"] > div[data-testid^="stVerticalBlock"] > div[data-testid^="stButton"] > button:hover {{ background-color: #D0E8FF; color: #005A8C; }}
+    [data-testid="stSidebar"] {{ background-color: #D6EAF8; padding: 10px; }}
 </style>
 """, unsafe_allow_html=True)
 
@@ -271,7 +187,7 @@ if 'normalizer' not in st.session_state:
 if 'normalized_series' not in st.session_state:
     st.session_state.normalized_series = None
 if 'significant_lags_input' not in st.session_state:
-    st.session_state.significant_lags_input = "1, 2"
+    st.session_state.significant_lags_input = "1, 2, 3"
 if 'trained_rbf_model' not in st.session_state:
     st.session_state.trained_rbf_model = None
 if 'model_params' not in st.session_state:
@@ -281,18 +197,15 @@ if 'data_column_name' not in st.session_state:
 if 'date_column_name' not in st.session_state:
     st.session_state.date_column_name = 'Tanggal'
 
-
 # Navigation
-st.markdown(f"<h1 style='text-align: center; color: {ACCENT_COLOR};'>📈 Aplikasi Prediksi IHK dengan RBFNN</h1>", unsafe_allow_html=True)
+st.markdown(f"<h1 style='text-align: center; color: {ACCENT_COLOR_LIGHT};'>📈 Aplikasi Prediksi IHK dengan RBFNN</h1>", unsafe_allow_html=True)
 st.markdown("---")
 
 nav_cols = st.columns(5)
 pages = ["Beranda", "Upload File", "Pre-processing", "Pemodelan", "Prediksi"]
-button_keys = ["nav_beranda", "nav_upload", "nav_preprocess", "nav_model", "nav_predict"]
-
 for i, page_name in enumerate(pages):
     disabled_page = (page_name in ["Pre-processing", "Pemodelan", "Prediksi"]) and not st.session_state.file_uploaded
-    if nav_cols[i].button(page_name, key=button_keys[i], disabled=disabled_page, use_container_width=True):
+    if nav_cols[i].button(page_name, key=f"nav_{page_name}", disabled=disabled_page, use_container_width=True):
         st.session_state.current_page = page_name
         st.rerun()
 
@@ -304,15 +217,19 @@ if (st.session_state.current_page in ["Pre-processing", "Pemodelan", "Prediksi"]
 # -----------------------------------------------------------------------------
 
 def page_beranda():
-    st.header("Selamat Datang di Aplikasi Prediksi IHK Surabaya")
+    st.header("Selamat Datang di Aplikasi Prediksi IHK")
     st.markdown("Aplikasi ini menggunakan Radial Basis Function Neural Network (RBFNN) untuk melakukan prediksi Indeks Harga Konsumen (IHK). Navigasikan melalui menu di atas untuk memulai.")
+    
     st.subheader("Apa itu RBFNN?")
     st.markdown("""
-    Radial Basis Function Neural Network (RBFNN) merupakan salah satu arsitektur Jaringan Syaraf Tiruan (JST) yang bersifat feedforward. RBFNN menggunakan fungsi aktivasi berbasis radial, yaitu fungsi yang nilainya bergantung pada jarak antara suatu titik input dengan titik pusat tertentu di dalam ruang input.  Arsitektur RBFNN memiliki tiga lapisan:
-    1.  **Lapisan Input (Input Layer):** Input layer ini menerima data dengan nilai yang kita kehendaki,dapat menggunakan uji PACF untuk menentukan variabel input
+    Radial Basis Function Neural Network (RBFNN) merupakan salah satu arsitektur Jaringan Syaraf Tiruan (JST) yang bersifat feedforward. RBFNN menggunakan fungsi aktivasi berbasis radial, yaitu fungsi yang nilainya bergantung pada jarak antara suatu titik input dengan titik pusat tertentu di dalam ruang input. Arsitektur RBFNN memiliki tiga lapisan:
+    1.  **Lapisan Input (Input Layer):** Menerima data input, yang dapat ditentukan menggunakan uji PACF untuk memilih variabel input yang relevan.
     2.  **Lapisan Tersembunyi (Hidden Layer):** Terdiri dari neuron RBF yang menghitung fungsi aktivasi berdasarkan jarak antara input dan pusat neuron.
-    3.  **Lapisan Output (Output Layer):** Menghasilkan output prediksi dari hasil perkalian antara bobot dengan fungsi aktivasi
+    3.  **Lapisan Output (Output Layer):** Menghasilkan output prediksi dari hasil perkalian antara bobot dengan fungsi aktivasi.
     """)
+    # REVISI 3: Menggunakan gambar lokal dari repository
+    st.image("Arsitektur RBFNN.png", caption="Arsitektur Jaringan RBFNN", use_column_width=True)
+
 
 def page_upload_file():
     st.header("📤 Upload File Data IHK")
@@ -347,16 +264,13 @@ def page_upload_file():
             st.dataframe(st.session_state.data_timeseries.head())
 
             st.subheader("Plot Data Time Series")
-            fig, ax = plt.subplots(figsize=(12, 6), facecolor=CONTENT_BG_COLOR)
-            ax.plot(st.session_state.data_timeseries.index, st.session_state.data_timeseries['IHK_Value'], color=PLOT_LINE_COLOR, linewidth=2)
-            ax.set_title(f'Data {st.session_state.data_column_name} Historis', color=TEXT_COLOR)
-            ax.set_xlabel('Tanggal', color=TEXT_COLOR)
-            ax.set_ylabel(st.session_state.data_column_name, color=TEXT_COLOR)
-            ax.grid(True, linestyle='--', alpha=0.3, color=PLOT_GRID_COLOR)
-            ax.tick_params(colors=TEXT_COLOR, labelcolor=TEXT_COLOR)
-            ax.set_facecolor(CONTENT_BG_COLOR)
-            for spine in ax.spines.values():
-                spine.set_edgecolor(PLOT_GRID_COLOR)
+            fig, ax = plt.subplots(figsize=(12, 6))
+            ax.plot(st.session_state.data_timeseries.index, st.session_state.data_timeseries['IHK_Value'], color=PLOT_LINE_COLOR_LIGHT, linewidth=2)
+            ax.set_title(f'Data {st.session_state.data_column_name} Historis', color=TEXT_COLOR_LIGHT)
+            ax.set_xlabel('Tanggal', color=TEXT_COLOR_LIGHT)
+            ax.set_ylabel(st.session_state.data_column_name, color=TEXT_COLOR_LIGHT)
+            ax.grid(True, linestyle='--', alpha=0.7, color=PLOT_GRID_COLOR_LIGHT)
+            ax.tick_params(colors=TEXT_COLOR_LIGHT)
             st.pyplot(fig)
 
             st.subheader("Analisis Deskriptif")
@@ -409,10 +323,16 @@ def page_preprocessing():
         st.session_state.normalized_series = pd.Series(normalized_values.flatten(), index=data_ts.index)
         st.session_state.normalizer = normalizer_obj
         
-        st.subheader("3. Identifikasi Lag Signifikan (ACF/PACF)")
-        lags_to_plot = st.slider("Jumlah lag untuk plot ACF/PACF:", min_value=10, max_value=min(60, len(st.session_state.normalized_series)//3), value=24)
-        fig_acf_pacf = plot_acf_pacf_streamlit(st.session_state.normalized_series, lags=lags_to_plot, series_name="Data Ternormalisasi")
-        st.pyplot(fig_acf_pacf)
+        # REVISI 1: Teks dan plot diubah untuk hanya menampilkan PACF
+        st.subheader("3. Identifikasi Lag Signifikan (PACF)")
+        st.markdown("""
+        Plot PACF (Partial Autocorrelation Function) membantu mengidentifikasi lag yang signifikan 
+        untuk model time series. Lag yang signifikan pada PACF sering digunakan sebagai input untuk model.
+        """)
+        
+        lags_to_plot = st.slider("Jumlah lag untuk plot PACF:", min_value=10, max_value=min(60, len(st.session_state.normalized_series)//3), value=24)
+        fig_pacf = plot_pacf_only_streamlit(st.session_state.normalized_series, lags=lags_to_plot, series_name="Data Ternormalisasi")
+        st.pyplot(fig_pacf)
 
         st.markdown("Masukkan lag signifikan berdasarkan plot PACF (pisahkan dengan koma):")
         lags_input_str = st.text_input("Lag Signifikan:", st.session_state.significant_lags_input, key="lags_input_preprocess")
@@ -428,7 +348,7 @@ def page_preprocessing():
             except ValueError:
                 st.error("Format lag tidak valid. Harap masukkan angka yang dipisahkan koma.")
     except Exception as e:
-        st.error(f"❌ Terjadi kesalahan saat normalisasi atau plot ACF/PACF: {e}")
+        st.error(f"❌ Terjadi kesalahan saat normalisasi atau plot PACF: {e}")
 
 def page_pemodelan():
     st.header("🛠️ Pemodelan RBFNN")
@@ -440,7 +360,9 @@ def page_pemodelan():
     activation_fn = st.sidebar.selectbox("Fungsi Aktivasi:", ['gaussian', 'multiquadric'], key="activation_select")
     split_ratio_str = st.sidebar.selectbox("Rasio Data Training:Testing:", ["80:20", "70:30", "90:10"], index=0, key="split_ratio_select")
     train_split_ratio = {"90:10": 0.9, "80:20": 0.8, "70:30": 0.7}[split_ratio_str]
-    num_centers = st.sidebar.slider("Jumlah Center (Neuron RBF):", min_value=2, max_value=10, value=3, step=1, key="centers_slider")
+    
+    # REVISI 2: Menggunakan tombol radio untuk jumlah center 1-5
+    num_centers = st.sidebar.radio("Jumlah Center (Neuron RBF):", [1, 2, 3, 4, 5], index=2, horizontal=True, key="centers_radio")
     
     st.sidebar.markdown("---")
     st.sidebar.subheader("Lag Input Model")
@@ -481,7 +403,6 @@ def page_pemodelan():
                 
                 rbf_model = RBFNN(n_centers=num_centers, activation=activation_fn)
                 if not rbf_model.fit(X_train, y_train):
-                    st.error("❌ Gagal melatih model RBFNN.")
                     st.session_state.trained_rbf_model = None
                     return
                 
@@ -493,36 +414,30 @@ def page_pemodelan():
                 col_res1, col_res2 = st.columns(2)
                 col_res1.metric("Nilai Spread (σ) Model", f"{rbf_model.spread:.4f}")
 
-                y_train_pred_norm = rbf_model.predict(X_train)
-                y_test_pred_norm = rbf_model.predict(X_test)
-
+                y_train_pred_norm, y_test_pred_norm = rbf_model.predict(X_train), rbf_model.predict(X_test)
                 normalizer = st.session_state.normalizer
                 y_train_denorm, y_train_pred_denorm = normalizer.denormalize(y_train.reshape(-1, 1)), normalizer.denormalize(y_train_pred_norm)
                 y_test_denorm, y_test_pred_denorm = normalizer.denormalize(y_test.reshape(-1, 1)), normalizer.denormalize(y_test_pred_norm)
                 
-                train_smape_val = smape(y_train_denorm, y_train_pred_denorm)
-                test_smape_val = smape(y_test_denorm, y_test_pred_denorm)
+                train_smape_val, test_smape_val = smape(y_train_denorm, y_train_pred_denorm), smape(y_test_denorm, y_test_pred_denorm)
                 col_res1.metric("Train SMAPE", f"{train_smape_val:.2f}%")
                 col_res2.metric("Test SMAPE", f"{test_smape_val:.2f}%")
                 
                 st.subheader("Visualisasi Hasil Prediksi (Data Asli)")
-                fig_pred, ax_pred = plt.subplots(figsize=(14, 7), facecolor=CONTENT_BG_COLOR)
+                fig_pred, ax_pred = plt.subplots(figsize=(14, 7))
                 full_original_data = st.session_state.data_timeseries[st.session_state.normalizer.data_column_name]
-                ax_pred.plot(full_original_data.index, full_original_data.values, label='Data Asli (Historis)', color=PLOT_GRID_COLOR, alpha=0.7, linestyle='--')
-                ax_pred.plot(idx_train, y_train_denorm, label='Data Training (Asli)', color='#3182CE', marker='.', linestyle='')
-                ax_pred.plot(idx_train, y_train_pred_denorm, label='Prediksi Training', color='#63B3ED', linestyle='--')
-                ax_pred.plot(idx_test, y_test_denorm, label='Data Testing (Asli)', color='#38A169', marker='.', linestyle='')
-                ax_pred.plot(idx_test, y_test_pred_denorm, label='Prediksi Testing', color='#68D391', linestyle='--')
+                ax_pred.plot(full_original_data.index, full_original_data.values, label='Data Asli (Historis)', color='gray', alpha=0.7, linestyle='--')
+                ax_pred.plot(idx_train, y_train_denorm, label='Data Training (Asli)', color='blue', marker='.', linestyle='')
+                ax_pred.plot(idx_train, y_train_pred_denorm, label='Prediksi Training', color='cyan', linestyle='--')
+                ax_pred.plot(idx_test, y_test_denorm, label='Data Testing (Asli)', color='green', marker='.', linestyle='')
+                ax_pred.plot(idx_test, y_test_pred_denorm, label='Prediksi Testing', color='orange', linestyle='--')
                 
-                ax_pred.set_title(f'Perbandingan Data Asli vs Prediksi ({st.session_state.data_column_name})', color=TEXT_COLOR)
-                ax_pred.set_xlabel('Tanggal', color=TEXT_COLOR)
-                ax_pred.set_ylabel(st.session_state.data_column_name, color=TEXT_COLOR)
-                ax_pred.legend(facecolor=CONTENT_BG_COLOR, edgecolor=PLOT_GRID_COLOR, labelcolor=TEXT_COLOR)
-                ax_pred.grid(True, linestyle='--', alpha=0.3, color=PLOT_GRID_COLOR)
-                ax_pred.tick_params(colors=TEXT_COLOR, labelcolor=TEXT_COLOR)
-                ax_pred.set_facecolor(CONTENT_BG_COLOR)
-                for spine in ax_pred.spines.values():
-                    spine.set_edgecolor(PLOT_GRID_COLOR)
+                ax_pred.set_title(f'Perbandingan Data Asli vs Prediksi ({st.session_state.data_column_name})', color=TEXT_COLOR_LIGHT)
+                ax_pred.set_xlabel('Tanggal', color=TEXT_COLOR_LIGHT)
+                ax_pred.set_ylabel(st.session_state.data_column_name, color=TEXT_COLOR_LIGHT)
+                ax_pred.legend(loc='upper left')
+                ax_pred.grid(True, linestyle='--', alpha=0.7)
+                ax_pred.tick_params(colors=TEXT_COLOR_LIGHT)
                 st.pyplot(fig_pred)
 
             except Exception as e:
@@ -572,26 +487,35 @@ def page_prediksi():
             st.dataframe(future_df.style.format({'Tanggal': lambda t: t.strftime('%Y-%m-%d'), f'Prediksi {st.session_state.data_column_name}': "{:.2f}"}))
 
             st.subheader("Visualisasi Prediksi vs Data Historis")
-            fig_future, ax_future = plt.subplots(figsize=(14, 7), facecolor=CONTENT_BG_COLOR)
+            fig_future, ax_future = plt.subplots(figsize=(14, 7))
             original_data_series = st.session_state.data_timeseries[normalizer.data_column_name]
-            ax_future.plot(original_data_series.index, original_data_series.values, label='Data Historis Asli', color=PLOT_LINE_COLOR)
-            ax_future.plot(future_dates, future_predictions_denorm, label='Prediksi 5 Bulan ke Depan', color='#F56565', marker='o', linestyle='--')
+            ax_future.plot(original_data_series.index, original_data_series.values, label='Data Historis Asli', color=PLOT_LINE_COLOR_LIGHT)
+            ax_future.plot(future_dates, future_predictions_denorm, label='Prediksi 5 Bulan ke Depan', color='red', marker='o', linestyle='--')
             
-            ax_future.set_title(f'Prediksi {st.session_state.data_column_name} 5 Bulan ke Depan', color=TEXT_COLOR)
-            ax_future.set_xlabel('Tanggal', color=TEXT_COLOR)
-            ax_future.set_ylabel(st.session_state.data_column_name, color=TEXT_COLOR)
-            ax_future.legend(facecolor=CONTENT_BG_COLOR, edgecolor=PLOT_GRID_COLOR, labelcolor=TEXT_COLOR)
-            ax_future.grid(True, linestyle='--', alpha=0.3, color=PLOT_GRID_COLOR)
-            ax_future.tick_params(colors=TEXT_COLOR, labelcolor=TEXT_COLOR)
-            ax_future.set_facecolor(CONTENT_BG_COLOR)
-            for spine in ax_future.spines.values():
-                spine.set_edgecolor(PLOT_GRID_COLOR)
+            ax_future.set_title(f'Prediksi {st.session_state.data_column_name} 5 Bulan ke Depan', color=TEXT_COLOR_LIGHT)
+            ax_future.set_xlabel('Tanggal', color=TEXT_COLOR_LIGHT)
+            ax_future.set_ylabel(st.session_state.data_column_name, color=TEXT_COLOR_LIGHT)
+            ax_future.legend()
+            ax_future.grid(True, linestyle='--', alpha=0.7)
+            ax_future.tick_params(colors=TEXT_COLOR_LIGHT)
             st.pyplot(fig_future)
 
         except Exception as e:
             st.error(f"❌ Terjadi kesalahan saat prediksi masa depan: {e}")
             import traceback
             st.error(traceback.format_exc())
+
+    # REVISI 4: Menambahkan tombol kembali ke halaman upload
+    st.markdown("---")
+    if st.button("↩️ Upload Data Baru untuk Prediksi Lain", key="predict_back"):
+        # Reset state untuk sesi baru
+        st.session_state.data_timeseries = None
+        st.session_state.file_uploaded = False
+        st.session_state.normalized_series = None
+        st.session_state.trained_rbf_model = None
+        st.session_state.model_params = {}
+        st.session_state.current_page = "Upload File"
+        st.rerun()
 
 # -----------------------------------------------------------------------------
 # Main App Logic: Page Routing
@@ -611,4 +535,4 @@ elif st.session_state.current_page == "Prediksi":
         page_prediksi()
 
 st.markdown("---")
-st.markdown(f"<p style='text-align: center; font-size: small; color: {ACCENT_COLOR};'>Aplikasi Prediksi IHK Surabaya - Dibuat dengan Streamlit</p>", unsafe_allow_html=True)
+st.markdown(f"<p style='text-align: center; font-size: small; color: {ACCENT_COLOR_LIGHT};'>Aplikasi Prediksi IHK - Dibuat dengan Streamlit</p>", unsafe_allow_html=True)
