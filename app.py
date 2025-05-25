@@ -14,10 +14,10 @@ from sklearn.metrics import mean_squared_error
 # -----------------------------------------------------------------------------
 
 # --- Definisi Warna Tema Gelap ---
-BG_COLOR = "#1A202C"
+BG_COLOR = "#002147"
 CONTENT_BG_COLOR = "#2D3748"
 TEXT_COLOR = "#E2E8F0"
-ACCENT_COLOR = "#90CDF4"
+ACCENT_COLOR = "#D2B48C"
 PLOT_LINE_COLOR = "#63B3ED"
 PLOT_GRID_COLOR = "#4A5568"
 
