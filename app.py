@@ -308,13 +308,11 @@ def page_beranda():
     st.markdown("Aplikasi ini menggunakan Radial Basis Function Neural Network (RBFNN) untuk melakukan prediksi Indeks Harga Konsumen (IHK). Navigasikan melalui menu di atas untuk memulai.")
     st.subheader("Apa itu RBFNN?")
     st.markdown("""
-    Radial Basis Function Neural Network (RBFNN) adalah jenis jaringan saraf tiruan yang menggunakan fungsi basis radial sebagai fungsi aktivasi. Jaringan ini biasanya memiliki tiga lapisan:
-    1.  **Lapisan Input (Input Layer):** Menerima data input.
-    2.  **Lapisan Tersembunyi (Hidden Layer):** Terdiri dari neuron RBF yang menghitung fungsi basis radial (seperti Gaussian) berdasarkan jarak antara input dan pusat neuron.
-    3.  **Lapisan Output (Output Layer):** Menghasilkan output prediksi dengan melakukan kombinasi linear dari output neuron-neuron di lapisan tersembunyi.
+    Radial Basis Function Neural Network (RBFNN) merupakan salah satu arsitektur Jaringan Syaraf Tiruan (JST) yang bersifat feedforward. RBFNN menggunakan fungsi aktivasi berbasis radial, yaitu fungsi yang nilainya bergantung pada jarak antara suatu titik input dengan titik pusat tertentu di dalam ruang input.  Arsitektur RBFNN memiliki tiga lapisan:
+    1.  **Lapisan Input (Input Layer):** Input layer ini menerima data dengan nilai yang kita kehendaki,dapat menggunakan uji PACF untuk menentukan variabel input
+    2.  **Lapisan Tersembunyi (Hidden Layer):** Terdiri dari neuron RBF yang menghitung fungsi aktivasi berdasarkan jarak antara input dan pusat neuron.
+    3.  **Lapisan Output (Output Layer):** Menghasilkan output prediksi dari hasil perkalian antara bobot dengan fungsi aktivasi
     """)
-    st.image("https://upload.wikimedia.org/wikipedia/commons/thumb/a/a2/RBF_network_architecture.svg/800px-RBF_network_architecture.svg.png", caption="Arsitektur Jaringan RBFNN (Sumber: Wikipedia)", use_column_width=True)
-    st.markdown("<p style='font-size: smaller; text-align: center;'>Diagram oleh Mirca MAD (Mirko M.) - Own work, CC BY-SA 4.0</p>", unsafe_allow_html=True)
 
 def page_upload_file():
     st.header("📤 Upload File Data IHK")
