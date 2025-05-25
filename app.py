@@ -168,7 +168,7 @@ st.markdown(f"""
     .stApp {{ background-color: {BG_COLOR}; }}
     .main .block-container {{ background-color: {CONTENT_BG_COLOR}; border-radius: 10px; padding: 2rem; box-shadow: 0 4px 8px rgba(0,0,0,0.3); border: 1px solid {PLOT_GRID_COLOR}; }}
     h1, h2, h3, h4, h5, h6 {{ color: {ACCENT_COLOR}; }}
-    .stButton>button {{ background-color: #3182CE; color: white; border-radius: 5px; border: 1px solid #2B6CB0; padding: 0.5rem 1rem; }}
+    .stButton>button {{ background-color: #2C3838; color: white; border-radius: 5px; border: 1px solid #2B6CB0; padding: 0.5rem 1rem; }}
     .stButton>button:hover {{ background-color: #2B6CB0; color: white; }}
     .stButton>button:focus {{ outline: none !important; box-shadow: 0 0 0 0.2rem rgba(49,130,206,.5) !important; }}
     div[data-testid="stHorizontalBlock"] > div[data-testid^="stVerticalBlock"] > div[data-testid^="stButton"] > button {{ width: 100%; background-color: transparent; color: #A0AEC0; border: 1px solid {PLOT_GRID_COLOR}; }}
