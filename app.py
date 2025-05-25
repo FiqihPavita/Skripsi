@@ -14,8 +14,8 @@ from sklearn.metrics import mean_squared_error
 # -----------------------------------------------------------------------------
 
 # --- Definisi Warna Tema Gelap ---
-BG_COLOR = "#002147"
-CONTENT_BG_COLOR = "#002147"
+BG_COLOR = "#12403C"
+CONTENT_BG_COLOR = "#12403C"
 TEXT_COLOR = "#E2E8F0"
 ACCENT_COLOR = "#D2B48C"
 PLOT_LINE_COLOR = "#63B3ED"
@@ -239,7 +239,7 @@ def page_beranda():
     col1, col2, col3 = st.columns([1,2,1]) # Buat 3 kolom, kolom tengah lebih lebar
 
     with col2: # Masukkan gambar di kolom tengah
-        st.image("Arsitektur RBFNN.png", caption="Arsitektur Jaringan RBFNN", width=800)
+        st.image("Arsitektur RBFNN.png", caption="Arsitektur Jaringan RBFNN", width=600)
     st.markdown("""
     Radial Basis Function Neural Network (RBFNN) merupakan salah satu arsitektur Jaringan Syaraf Tiruan (JST) yang bersifat feedforward. RBFNN menggunakan fungsi aktivasi berbasis radial, yaitu fungsi yang nilainya bergantung pada jarak antara suatu titik input dengan titik pusat tertentu di dalam ruang input. Arsitektur RBFNN memiliki tiga lapisan:
     1.  **Lapisan Input (Input Layer):** Menerima data input, yang dapat ditentukan menggunakan uji PACF untuk memilih variabel input yang relevan.
