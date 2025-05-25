@@ -236,7 +236,10 @@ def page_beranda():
     st.markdown("Aplikasi ini menggunakan Radial Basis Function Neural Network (RBFNN) untuk melakukan prediksi Indeks Harga Konsumen (IHK). Navigasikan melalui menu di atas untuk memulai.")
     
     st.subheader("Apa itu RBFNN?")
-    st.image("Arsitektur RBFNN.png", caption="Arsitektur Jaringan RBFNN", width=800, style="margin-bottom: 10px")
+    col1, col2, col3 = st.columns([1,2,1]) # Buat 3 kolom, kolom tengah lebih lebar
+
+    with col2: # Masukkan gambar di kolom tengah
+        st.image("Arsitektur RBFNN.png", caption="Arsitektur Jaringan RBFNN", width=800)
     st.markdown("""
     Radial Basis Function Neural Network (RBFNN) merupakan salah satu arsitektur Jaringan Syaraf Tiruan (JST) yang bersifat feedforward. RBFNN menggunakan fungsi aktivasi berbasis radial, yaitu fungsi yang nilainya bergantung pada jarak antara suatu titik input dengan titik pusat tertentu di dalam ruang input. Arsitektur RBFNN memiliki tiga lapisan:
     1.  **Lapisan Input (Input Layer):** Menerima data input, yang dapat ditentukan menggunakan uji PACF untuk memilih variabel input yang relevan.
