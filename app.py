@@ -13,13 +13,13 @@ from sklearn.metrics import mean_squared_error
 # 0. Helper Functions and Classes (with updated plot colors)
 # -----------------------------------------------------------------------------
 
-# --- Definisi Warna Tema (Kembali ke tema terang sesuai kode awal) ---
-BG_COLOR_LIGHT = "#F0F8FF"
-CONTENT_BG_COLOR_LIGHT = "#FFFFFF"
-TEXT_COLOR_LIGHT = "#003B5C"
-ACCENT_COLOR_LIGHT = "#0072B2"
-PLOT_LINE_COLOR_LIGHT = "#0072B2"
-PLOT_GRID_COLOR_LIGHT = "#DDDDDD"
+# --- Definisi Warna Tema Gelap ---
+BG_COLOR = "#1A202C"
+CONTENT_BG_COLOR = "#2D3748"
+TEXT_COLOR = "#E2E8F0"
+ACCENT_COLOR = "#90CDF4"
+PLOT_LINE_COLOR = "#63B3ED"
+PLOT_GRID_COLOR = "#4A5568"
 
 class DataPreprocessing:
     def __init__(self, data_column_name='IHK', feature_range=(0, 1)):
@@ -228,7 +228,7 @@ def page_beranda():
     3.  **Lapisan Output (Output Layer):** Menghasilkan output prediksi dari hasil perkalian antara bobot dengan fungsi aktivasi.
     """)
     # REVISI 3: Menggunakan gambar lokal dari repository
-    st.image("Arsitektur RBFNN.png", caption="Arsitektur Jaringan RBFNN", use_column_width=True)
+    st.image("Arsitektur RBFNN.png", caption="Arsitektur Jaringan RBFNN", width=400)
 
 
 def page_upload_file():
