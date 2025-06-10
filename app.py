@@ -301,13 +301,12 @@ def page_upload_file():
             # --- PERBAIKAN 1: Menambahkan Interpretasi Analisis Deskriptif ---
             st.markdown(f"""
             #### Interpretasi Analisis Deskriptif:
-            Dari tabel di atas, kita dapat memahami karakteristik dasar dari data IHK yang diupload:
-            - **Jumlah Data (count):** Terdapat **{int(desc_stats['count'])}** titik data (misalnya, observasi bulanan) dalam dataset Anda.
-            - **Rata-rata (mean):** Nilai rata-rata IHK selama periode ini adalah **{desc_stats['mean']:.2f}**. Ini memberikan gambaran nilai sentral dari data Anda.
-            - **Standar Deviasi (std):** Sebaran atau volatilitas data dari nilai rata-ratanya adalah sebesar **{desc_stats['std']:.2f}**. Nilai yang lebih tinggi menunjukkan fluktuasi harga yang lebih besar.
-            - **Nilai Minimum (min):** IHK terendah yang pernah tercatat dalam periode ini adalah **{desc_stats['min']:.2f}**.
-            - **Nilai Maksimum (max):** IHK tertinggi yang pernah tercatat adalah **{desc_stats['max']:.2f}**.
-            - **Kuartil (25%, 50%, 75%):** Angka-angka ini membagi data menjadi empat bagian sama besar. Sebagai contoh, 50% dari data (median) memiliki nilai IHK di bawah **{desc_stats['50%']:.2f}**.
+            - **Jumlah Data:** Terdapat **{int(desc_stats['count'])}** data 
+            - **Rata-rata (mean):** Nilai rata-rata IHK selama periode ini adalah **{desc_stats['mean']:.2f}**
+            - **Standar Deviasi (std):** Standar Deviasi sebesar **{desc_stats['std']:.2f}**. Nilai yang lebih tinggi menunjukkan fluktuasi harga yang lebih besar.
+            - **Nilai Minimum (min):** Nilai IHK terendah yang pernah tercatat dalam periode ini adalah **{desc_stats['min']:.2f}**.
+            - **Nilai Maksimum (max):** Nilai IHK tertinggi yang pernah tercatat adalah **{desc_stats['max']:.2f}**.
+            - **Kuartil (25%, 50%, 75%):** Memberikan gambaran mengenai sebaran dan distribusi data. Sebagai contoh, 50% dari data (median) memiliki nilai IHK di bawah **{desc_stats['50%']:.2f}**.
             """)
             # --- Akhir Perbaikan 1 ---
             
@@ -327,10 +326,10 @@ def page_preprocessing():
     # --- PERBAIKAN 2: Menambahkan Penjelasan Umum Pre-processing ---
     st.markdown("""
     Tahap pre-processing sangat penting untuk menyiapkan data sebelum dimasukkan ke dalam model RBFNN. 
-    Kualitas data yang baik akan menghasilkan model yang lebih akurat. Tahapan yang akan kita lakukan meliputi:
-    1.  **Pengecekan Missing Values:** Memastikan tidak ada data yang hilang.
-    2.  **Normalisasi Data:** Menyamakan skala data agar proses training model lebih stabil.
-    3.  **Identifikasi Lag:** Menentukan input yang relevan untuk model berdasarkan data masa lalunya.
+    Kualitas data yang baik akan menghasilkan model yang lebih akurat
+    1.  **Pengecekan Missing Values:** Memastikan tidak ada data yang hilang
+    2.  **Normalisasi Data:** Menyamakan skala data untuk meningkatkan akurasi
+    3.  **Identifikasi Lag:** Menentukan input yang relevan untuk model
     """)
     st.markdown("---")
     # --- Akhir Perbaikan 2 ---
@@ -340,7 +339,7 @@ def page_preprocessing():
 
     st.subheader("1. Pengecekan Missing Values")
     # --- PERBAIKAN 3: Menambahkan Konteks pada Missing Values ---
-    st.markdown("Missing values (data yang hilang) dapat menyebabkan error saat pelatihan dan menghasilkan prediksi yang tidak akurat. Oleh karena itu, kita perlu menanganinya, misalnya dengan metode imputasi (mengisi nilai yang hilang).")
+    st.markdown("Missing values (data yang hilang) dapat menyebabkan error saat pelatihan dan menghasilkan prediksi yang tidak akurat. Oleh karena itu, perlu dipastikan bahwa data tidak memiliki missing value
     # --- Akhir Perbaikan 3 ---
     total_missing, missing_details = normalizer_obj.check_missing_values(data_ts)
     if total_missing > 0:
@@ -360,9 +359,7 @@ def page_preprocessing():
     st.subheader("2. Normalisasi Data")
     # --- PERBAIKAN 4: Menambahkan Penjelasan Normalisasi ---
     st.markdown("""
-    Normalisasi bertujuan untuk mengubah skala nilai pada data ke dalam rentang tertentu, umumnya antara 0 dan 1. 
-    Hal ini sangat penting untuk model berbasis jarak seperti RBFNN agar tidak ada satu fitur pun yang mendominasi proses pembelajaran hanya karena skalanya lebih besar. 
-    Normalisasi membantu proses training menjadi lebih stabil dan konvergen lebih cepat.
+    Normalisasi bertujuan untuk mengubah skala nilai pada data ke dalam rentang tertentu
     """)
     # --- Akhir Perbaikan 4 ---
     try:
@@ -382,7 +379,7 @@ def page_preprocessing():
         st.subheader("3. Identifikasi Lag Signifikan (PACF)")
         # --- PERBAIKAN 5: Memperjelas Interpretasi PACF ---
         st.markdown("""
-        Untuk memprediksi nilai di masa depan, model perlu tahu data masa lalu mana yang paling berpengaruh. Plot **Partial Autocorrelation Function (PACF)** membantu kita mengidentifikasi hubungan langsung antara nilai saat ini dengan nilai-nilai sebelumnya (disebut **lag**), setelah menghilangkan efek dari lag perantaranya.
+        Plot **Partial Autocorrelation Function (PACF)** membantu kita mengidentifikasi hubungan langsung antara nilai saat ini dengan nilai-nilai sebelumnya (**lag**), setelah menghilangkan efek dari lag perantaranya.
 
         **Cara Membaca Plot PACF:**
         - **Sumbu Y:** Menunjukkan nilai korelasi parsial.
@@ -403,7 +400,7 @@ def page_preprocessing():
 
         # --- PERBAIKAN 6: Menambahkan Kesimpulan Halaman Pre-processing ---
         st.markdown("---")
-        st.success("✅ **Pre-processing Selesai!** Data kini sudah bersih, berskala seragam, dan kita telah mengidentifikasi input yang relevan. Data siap untuk tahap pemodelan.")
+        st.success("✅ **Pre-processing Selesai!** Data tidak terdapat missing value, di normalisasi, dan telah diidentifikasi input yang relevan. Data siap untuk tahap pemodelan.")
         # --- Akhir Perbaikan 6 ---
 
         if st.button("Lanjut ke Pemodelan ➡️", key="preprocess_next"):
