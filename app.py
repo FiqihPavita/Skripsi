@@ -339,7 +339,7 @@ def page_preprocessing():
 
     st.subheader("1. Pengecekan Missing Values")
     # --- PERBAIKAN 3: Menambahkan Konteks pada Missing Values ---
-    st.markdown("Missing values (data yang hilang) dapat menyebabkan error saat pelatihan dan menghasilkan prediksi yang tidak akurat. Oleh karena itu, perlu dipastikan bahwa data tidak memiliki missing value
+    st.markdown("Missing values (data yang hilang) dapat menyebabkan error saat pelatihan dan menghasilkan prediksi yang tidak akurat. Oleh karena itu, perlu dipastikan bahwa data tidak memiliki missing value")
     # --- Akhir Perbaikan 3 ---
     total_missing, missing_details = normalizer_obj.check_missing_values(data_ts)
     if total_missing > 0:
