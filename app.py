@@ -282,20 +282,34 @@ def page_upload_file():
             st.dataframe(st.session_state.data_timeseries.head())
 
             st.subheader("Plot Data Time Series")
-            fig, ax = plt.subplots(figsize=(12, 6), facecolor=CONTENT_BG_COLOR) # Gunakan warna tema
+            fig, ax = plt.subplots(figsize=(12, 6), facecolor=CONTENT_BG_COLOR)
             ax.plot(st.session_state.data_timeseries.index, st.session_state.data_timeseries['IHK_Value'], color=PLOT_LINE_COLOR, linewidth=2)
             ax.set_title(f'Data {st.session_state.data_column_name} Historis', color=TEXT_COLOR)
             ax.set_xlabel('Tanggal', color=TEXT_COLOR)
             ax.set_ylabel(st.session_state.data_column_name, color=TEXT_COLOR)
-            ax.grid(True, linestyle='--', alpha=0.3, color=PLOT_GRID_COLOR) # Warna grid
+            ax.grid(True, linestyle='--', alpha=0.3, color=PLOT_GRID_COLOR)
             ax.tick_params(colors=TEXT_COLOR, labelcolor=TEXT_COLOR)
-            ax.set_facecolor(CONTENT_BG_COLOR) # Latar belakang axis
-            for spine in ax.spines.values(): # Warna bingkai
+            ax.set_facecolor(CONTENT_BG_COLOR)
+            for spine in ax.spines.values():
                 spine.set_edgecolor(PLOT_GRID_COLOR)
             st.pyplot(fig)
 
             st.subheader("Analisis Deskriptif")
-            st.dataframe(st.session_state.data_timeseries['IHK_Value'].describe().to_frame().T)
+            desc_stats = st.session_state.data_timeseries['IHK_Value'].describe()
+            st.dataframe(desc_stats.to_frame().T)
+            
+            # --- PERBAIKAN 1: Menambahkan Interpretasi Analisis Deskriptif ---
+            st.markdown(f"""
+            #### Interpretasi Analisis Deskriptif:
+            Dari tabel di atas, kita dapat memahami karakteristik dasar dari data IHK yang diupload:
+            - **Jumlah Data (count):** Terdapat **{int(desc_stats['count'])}** titik data (misalnya, observasi bulanan) dalam dataset Anda.
+            - **Rata-rata (mean):** Nilai rata-rata IHK selama periode ini adalah **{desc_stats['mean']:.2f}**. Ini memberikan gambaran nilai sentral dari data Anda.
+            - **Standar Deviasi (std):** Sebaran atau volatilitas data dari nilai rata-ratanya adalah sebesar **{desc_stats['std']:.2f}**. Nilai yang lebih tinggi menunjukkan fluktuasi harga yang lebih besar.
+            - **Nilai Minimum (min):** IHK terendah yang pernah tercatat dalam periode ini adalah **{desc_stats['min']:.2f}**.
+            - **Nilai Maksimum (max):** IHK tertinggi yang pernah tercatat adalah **{desc_stats['max']:.2f}**.
+            - **Kuartil (25%, 50%, 75%):** Angka-angka ini membagi data menjadi empat bagian sama besar. Sebagai contoh, 50% dari data (median) memiliki nilai IHK di bawah **{desc_stats['50%']:.2f}**.
+            """)
+            # --- Akhir Perbaikan 1 ---
             
             if st.button("Lanjut ke Pre-processing ➡️", key="upload_next"):
                 st.session_state.current_page = "Pre-processing"
@@ -310,10 +324,24 @@ def page_preprocessing():
         st.warning("⛔ Silakan upload data terlebih dahulu di halaman 'Upload File'.")
         return
 
+    # --- PERBAIKAN 2: Menambahkan Penjelasan Umum Pre-processing ---
+    st.markdown("""
+    Tahap pre-processing sangat penting untuk menyiapkan data sebelum dimasukkan ke dalam model RBFNN. 
+    Kualitas data yang baik akan menghasilkan model yang lebih akurat. Tahapan yang akan kita lakukan meliputi:
+    1.  **Pengecekan Missing Values:** Memastikan tidak ada data yang hilang.
+    2.  **Normalisasi Data:** Menyamakan skala data agar proses training model lebih stabil.
+    3.  **Identifikasi Lag:** Menentukan input yang relevan untuk model berdasarkan data masa lalunya.
+    """)
+    st.markdown("---")
+    # --- Akhir Perbaikan 2 ---
+
     data_ts = st.session_state.data_timeseries
     normalizer_obj = st.session_state.normalizer
 
     st.subheader("1. Pengecekan Missing Values")
+    # --- PERBAIKAN 3: Menambahkan Konteks pada Missing Values ---
+    st.markdown("Missing values (data yang hilang) dapat menyebabkan error saat pelatihan dan menghasilkan prediksi yang tidak akurat. Oleh karena itu, kita perlu menanganinya, misalnya dengan metode imputasi (mengisi nilai yang hilang).")
+    # --- Akhir Perbaikan 3 ---
     total_missing, missing_details = normalizer_obj.check_missing_values(data_ts)
     if total_missing > 0:
         st.warning(f"⚠️ Terdapat {total_missing} missing value pada data:")
@@ -323,13 +351,20 @@ def page_preprocessing():
             st.error("Imputasi gagal menghilangkan semua missing values.")
             return
         else:
-            st.success("Missing values diimputasi menggunakan forward & backward fill.")
+            st.success("Missing values berhasil diimputasi menggunakan metode *forward & backward fill*.")
             st.session_state.data_timeseries = data_ts_imputed
             data_ts = data_ts_imputed
     else:
         st.success("✅ Tidak terdapat missing value pada data.")
 
     st.subheader("2. Normalisasi Data")
+    # --- PERBAIKAN 4: Menambahkan Penjelasan Normalisasi ---
+    st.markdown("""
+    Normalisasi bertujuan untuk mengubah skala nilai pada data ke dalam rentang tertentu, umumnya antara 0 dan 1. 
+    Hal ini sangat penting untuk model berbasis jarak seperti RBFNN agar tidak ada satu fitur pun yang mendominasi proses pembelajaran hanya karena skalanya lebih besar. 
+    Normalisasi membantu proses training menjadi lebih stabil dan konvergen lebih cepat.
+    """)
+    # --- Akhir Perbaikan 4 ---
     try:
         normalizer_obj.fit_scaler(data_ts)
         normalized_values = normalizer_obj.normalize(data_ts[[normalizer_obj.data_column_name]])
@@ -338,25 +373,38 @@ def page_preprocessing():
         normalized_df_display['Data Normalisasi'] = normalized_values
         normalized_df_display.rename(columns={normalizer_obj.data_column_name: 'Data Asli'}, inplace=True)
         
-        st.markdown("Data dinormalisasi ke rentang [0, 1]. Berikut adalah contohnya:")
+        st.markdown("Berikut adalah perbandingan 5 data pertama sebelum dan sesudah normalisasi:")
         st.dataframe(normalized_df_display[['Data Asli', 'Data Normalisasi']].head())
 
         st.session_state.normalized_series = pd.Series(normalized_values.flatten(), index=data_ts.index)
         st.session_state.normalizer = normalizer_obj
         
         st.subheader("3. Identifikasi Lag Signifikan (PACF)")
+        # --- PERBAIKAN 5: Memperjelas Interpretasi PACF ---
         st.markdown("""
-        Plot PACF (Partial Autocorrelation Function) membantu mengidentifikasi lag yang signifikan 
-        untuk model time series. Lag yang signifikan pada PACF sering digunakan sebagai input untuk model.
+        Untuk memprediksi nilai di masa depan, model perlu tahu data masa lalu mana yang paling berpengaruh. Plot **Partial Autocorrelation Function (PACF)** membantu kita mengidentifikasi hubungan langsung antara nilai saat ini dengan nilai-nilai sebelumnya (disebut **lag**), setelah menghilangkan efek dari lag perantaranya.
+
+        **Cara Membaca Plot PACF:**
+        - **Sumbu Y:** Menunjukkan nilai korelasi parsial.
+        - **Sumbu X:** Menunjukkan urutan lag (lag 1, lag 2, dst.).
+        - **Area Biru:** Adalah batas signifikansi. Bar yang **keluar dari area biru** dianggap sebagai lag yang signifikan secara statistik.
+        
+        Lag-lag signifikan inilah yang akan kita gunakan sebagai variabel input untuk model RBFNN.
         """)
+        # --- Akhir Perbaikan 5 ---
         
         lags_to_plot = st.slider("Jumlah lag untuk plot PACF:", min_value=10, max_value=min(60, len(st.session_state.normalized_series)//3), value=24)
         fig_pacf = plot_pacf_only_streamlit(st.session_state.normalized_series, lags=lags_to_plot, series_name="Data Ternormalisasi")
         st.pyplot(fig_pacf)
 
-        st.markdown("Masukkan lag signifikan berdasarkan plot PACF (pisahkan dengan koma):")
+        st.markdown("Berdasarkan plot di atas, masukkan lag-lag yang signifikan (pisahkan dengan koma):")
         lags_input_str = st.text_input("Lag Signifikan:", st.session_state.significant_lags_input, key="lags_input_preprocess")
         st.session_state.significant_lags_input = lags_input_str
+
+        # --- PERBAIKAN 6: Menambahkan Kesimpulan Halaman Pre-processing ---
+        st.markdown("---")
+        st.success("✅ **Pre-processing Selesai!** Data kini sudah bersih, berskala seragam, dan kita telah mengidentifikasi input yang relevan. Data siap untuk tahap pemodelan.")
+        # --- Akhir Perbaikan 6 ---
 
         if st.button("Lanjut ke Pemodelan ➡️", key="preprocess_next"):
             try:
@@ -443,22 +491,22 @@ def page_pemodelan():
                 col_res2.metric("Test SMAPE", f"{test_smape_val:.2f}%")
                 
                 st.subheader("Visualisasi Hasil Prediksi (Data Asli)")
-                fig_pred, ax_pred = plt.subplots(figsize=(14, 7), facecolor=CONTENT_BG_COLOR) # Gunakan warna tema
+                fig_pred, ax_pred = plt.subplots(figsize=(14, 7), facecolor=CONTENT_BG_COLOR)
                 full_original_data = st.session_state.data_timeseries[st.session_state.normalizer.data_column_name]
                 ax_pred.plot(full_original_data.index, full_original_data.values, label='Data Asli (Historis)', color=PLOT_GRID_COLOR, alpha=0.7, linestyle='--')
-                ax_pred.plot(idx_train, y_train_denorm, label='Data Training (Asli)', color='#3182CE', marker='.', linestyle='') # Biru cerah
-                ax_pred.plot(idx_train, y_train_pred_denorm, label='Prediksi Training', color=PLOT_LINE_COLOR, linestyle='--') # Biru aksen
-                ax_pred.plot(idx_test, y_test_denorm, label='Data Testing (Asli)', color='#38A169', marker='.', linestyle='') # Hijau cerah
-                ax_pred.plot(idx_test, y_test_pred_denorm, label='Prediksi Testing', color='#68D391', linestyle='--') # Hijau lebih terang
+                ax_pred.plot(idx_train, y_train_denorm, label='Data Training (Asli)', color='#3182CE', marker='.', linestyle='')
+                ax_pred.plot(idx_train, y_train_pred_denorm, label='Prediksi Training', color=PLOT_LINE_COLOR, linestyle='--')
+                ax_pred.plot(idx_test, y_test_denorm, label='Data Testing (Asli)', color='#38A169', marker='.', linestyle='')
+                ax_pred.plot(idx_test, y_test_pred_denorm, label='Prediksi Testing', color='#68D391', linestyle='--')
                 
                 ax_pred.set_title(f'Perbandingan Data Asli vs Prediksi ({st.session_state.data_column_name})', color=TEXT_COLOR)
                 ax_pred.set_xlabel('Tanggal', color=TEXT_COLOR)
                 ax_pred.set_ylabel(st.session_state.data_column_name, color=TEXT_COLOR)
-                ax_pred.legend(facecolor=CONTENT_BG_COLOR, edgecolor=PLOT_GRID_COLOR, labelcolor=TEXT_COLOR) # Legend dengan tema
+                ax_pred.legend(facecolor=CONTENT_BG_COLOR, edgecolor=PLOT_GRID_COLOR, labelcolor=TEXT_COLOR)
                 ax_pred.grid(True, linestyle='--', alpha=0.3, color=PLOT_GRID_COLOR)
                 ax_pred.tick_params(colors=TEXT_COLOR, labelcolor=TEXT_COLOR)
-                ax_pred.set_facecolor(CONTENT_BG_COLOR) # Latar belakang axis
-                for spine in ax_pred.spines.values(): # Warna bingkai
+                ax_pred.set_facecolor(CONTENT_BG_COLOR)
+                for spine in ax_pred.spines.values():
                     spine.set_edgecolor(PLOT_GRID_COLOR)
                 st.pyplot(fig_pred)
 
@@ -509,19 +557,19 @@ def page_prediksi():
             st.dataframe(future_df.style.format({'Tanggal': lambda t: t.strftime('%Y-%m-%d'), f'Prediksi {st.session_state.data_column_name}': "{:.2f}"}))
 
             st.subheader("Visualisasi Prediksi vs Data Historis")
-            fig_future, ax_future = plt.subplots(figsize=(14, 7), facecolor=CONTENT_BG_COLOR) # Gunakan warna tema
+            fig_future, ax_future = plt.subplots(figsize=(14, 7), facecolor=CONTENT_BG_COLOR)
             original_data_series = st.session_state.data_timeseries[normalizer.data_column_name]
             ax_future.plot(original_data_series.index, original_data_series.values, label='Data Historis Asli', color=PLOT_LINE_COLOR)
-            ax_future.plot(future_dates, future_predictions_denorm, label='Prediksi 5 Bulan ke Depan', color='#F56565', marker='o', linestyle='--') # Merah untuk prediksi
+            ax_future.plot(future_dates, future_predictions_denorm, label='Prediksi 5 Bulan ke Depan', color='#F56565', marker='o', linestyle='--')
             
             ax_future.set_title(f'Prediksi {st.session_state.data_column_name} 5 Bulan ke Depan', color=TEXT_COLOR)
             ax_future.set_xlabel('Tanggal', color=TEXT_COLOR)
             ax_future.set_ylabel(st.session_state.data_column_name, color=TEXT_COLOR)
-            ax_future.legend(facecolor=CONTENT_BG_COLOR, edgecolor=PLOT_GRID_COLOR, labelcolor=TEXT_COLOR) # Legend dengan tema
+            ax_future.legend(facecolor=CONTENT_BG_COLOR, edgecolor=PLOT_GRID_COLOR, labelcolor=TEXT_COLOR)
             ax_future.grid(True, linestyle='--', alpha=0.3, color=PLOT_GRID_COLOR)
             ax_future.tick_params(colors=TEXT_COLOR, labelcolor=TEXT_COLOR)
-            ax_future.set_facecolor(CONTENT_BG_COLOR) # Latar belakang axis
-            for spine in ax_future.spines.values(): # Warna bingkai
+            ax_future.set_facecolor(CONTENT_BG_COLOR)
+            for spine in ax_future.spines.values():
                 spine.set_edgecolor(PLOT_GRID_COLOR)
             st.pyplot(fig_future)
 
