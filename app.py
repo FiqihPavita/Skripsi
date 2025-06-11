@@ -5,8 +5,8 @@ import matplotlib.pyplot as plt
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.cluster import KMeans
 from scipy.spatial.distance import cdist
-from statsmodels.tsa.stattools import acf, pacf # Meskipun ACF tidak ditampilkan, statsmodels mungkin masih dibutuhkan untuk PACF
-from statsmodels.graphics.tsaplots import plot_pacf # Hanya plot_pacf yang digunakan
+from statsmodels.tsa.stattools import acf, pacf
+from statsmodels.graphics.tsaplots import plot_pacf
 from sklearn.metrics import mean_squared_error
 
 # -----------------------------------------------------------------------------
@@ -44,15 +44,15 @@ class DataPreprocessing:
         return self.scaler.inverse_transform(normalized_data)
 
 def plot_pacf_only_streamlit(series, lags=20, series_name="Series"):
-    fig, ax = plt.subplots(1, 1, figsize=(10, 4.5), facecolor=CONTENT_BG_COLOR) # Gunakan warna tema
+    fig, ax = plt.subplots(1, 1, figsize=(10, 4.5), facecolor=CONTENT_BG_COLOR)
     
     plot_pacf(series, lags=lags, ax=ax, method='ywm', color=PLOT_LINE_COLOR, vlines_kwargs={"colors": PLOT_GRID_COLOR})
     ax.set_title(f'Partial Autocorrelation Function (PACF) - {series_name}', color=TEXT_COLOR)
     ax.tick_params(colors=TEXT_COLOR, labelcolor=TEXT_COLOR)
     ax.xaxis.label.set_color(TEXT_COLOR)
     ax.yaxis.label.set_color(TEXT_COLOR)
-    ax.set_facecolor(CONTENT_BG_COLOR) # Latar belakang axis
-    for spine in ax.spines.values(): # Warna bingkai
+    ax.set_facecolor(CONTENT_BG_COLOR)
+    for spine in ax.spines.values():
         spine.set_edgecolor(PLOT_GRID_COLOR)
     
     plt.tight_layout()
@@ -236,10 +236,11 @@ def page_beranda():
     st.markdown("Aplikasi ini menggunakan Radial Basis Function Neural Network (RBFNN) untuk melakukan prediksi Indeks Harga Konsumen (IHK). Navigasikan melalui menu di atas untuk memulai.")
     
     st.subheader("Apa itu RBFNN?")
-    col1, col2, col3 = st.columns([1,2,1]) # Buat 3 kolom, kolom tengah lebih lebar
+    col1, col2, col3 = st.columns([1,2,1])
 
-    with col2: # Masukkan gambar di kolom tengah
-        st.image("Arsitektur RBFNN.png", caption="Arsitektur Jaringan RBFNN", width=600)
+    with col2:
+        # st.image("Arsitektur RBFNN.png", caption="Arsitektur Jaringan RBFNN", width=600)
+        pass # Hapus komentar jika Anda memiliki file gambar ini
     st.markdown("""
     Radial Basis Function Neural Network (RBFNN) merupakan salah satu arsitektur Jaringan Syaraf Tiruan (JST) yang bersifat feedforward. RBFNN menggunakan fungsi aktivasi berbasis radial, yaitu fungsi yang nilainya bergantung pada jarak antara suatu titik input dengan titik pusat tertentu di dalam ruang input. Arsitektur RBFNN memiliki tiga lapisan:
     1.  **Lapisan Input (Input Layer):** Menerima data input, yang dapat ditentukan menggunakan uji PACF untuk memilih variabel input yang relevan.
@@ -298,17 +299,15 @@ def page_upload_file():
             desc_stats = st.session_state.data_timeseries['IHK_Value'].describe()
             st.dataframe(desc_stats.to_frame().T)
             
-            # --- PERBAIKAN 1: Menambahkan Interpretasi Analisis Deskriptif ---
             st.markdown(f"""
             #### Interpretasi Analisis Deskriptif:
-            - **Jumlah Data:** Terdapat **{int(desc_stats['count'])}** data 
-            - **Rata-rata (mean):** Nilai rata-rata IHK selama periode ini adalah **{desc_stats['mean']:.2f}**
+            - **Jumlah Data:** Terdapat **{int(desc_stats['count'])}** data.
+            - **Rata-rata (mean):** Nilai rata-rata IHK selama periode ini adalah **{desc_stats['mean']:.2f}**.
             - **Standar Deviasi (std):** Standar Deviasi sebesar **{desc_stats['std']:.2f}**. Nilai yang lebih tinggi menunjukkan fluktuasi harga yang lebih besar.
             - **Nilai Minimum (min):** Nilai IHK terendah yang pernah tercatat dalam periode ini adalah **{desc_stats['min']:.2f}**.
             - **Nilai Maksimum (max):** Nilai IHK tertinggi yang pernah tercatat adalah **{desc_stats['max']:.2f}**.
             - **Kuartil (25%, 50%, 75%):** Memberikan gambaran mengenai sebaran dan distribusi data. Sebagai contoh, 50% dari data (median) memiliki nilai IHK di bawah **{desc_stats['50%']:.2f}**.
             """)
-            # --- Akhir Perbaikan 1 ---
             
             if st.button("Lanjut ke Pre-processing ➡️", key="upload_next"):
                 st.session_state.current_page = "Pre-processing"
@@ -323,97 +322,95 @@ def page_preprocessing():
         st.warning("⛔ Silakan upload data terlebih dahulu di halaman 'Upload File'.")
         return
 
-    # --- PERBAIKAN 2: Menambahkan Penjelasan Umum Pre-processing ---
     st.markdown("""
     Tahap pre-processing sangat penting untuk menyiapkan data sebelum dimasukkan ke dalam model RBFNN. 
-    Kualitas data yang baik akan menghasilkan model yang lebih akurat
-    1.  **Pengecekan Missing Values:** Memastikan tidak ada data yang hilang
-    2.  **Normalisasi Data:** Menyamakan skala data untuk meningkatkan akurasi
-    3.  **Identifikasi Lag:** Menentukan input yang relevan untuk model
+    Kualitas data yang baik akan menghasilkan model yang lebih akurat. Tahapan yang akan kita lakukan meliputi:
+    1.  **Pengecekan Missing Values:** Memastikan tidak ada data yang hilang.
+    2.  **Normalisasi Data:** Menyamakan skala data untuk meningkatkan akurasi.
+    3.  **Identifikasi Lag:** Menentukan input yang relevan untuk model.
     """)
     st.markdown("---")
-    # --- Akhir Perbaikan 2 ---
 
     data_ts = st.session_state.data_timeseries
     normalizer_obj = st.session_state.normalizer
 
     st.subheader("1. Pengecekan Missing Values")
-    # --- PERBAIKAN 3: Menambahkan Konteks pada Missing Values ---
-    st.markdown("Missing values (data yang hilang) dapat menyebabkan error saat pelatihan dan menghasilkan prediksi yang tidak akurat. Oleh karena itu, perlu dipastikan bahwa data tidak memiliki missing value")
-    # --- Akhir Perbaikan 3 ---
+    st.markdown("""
+    Missing values (data yang hilang) dapat menyebabkan error saat pelatihan dan menghasilkan prediksi yang tidak akurat. 
+    Oleh karena itu, perlu dipastikan bahwa data tidak memiliki missing value.
+    """)
+    
     total_missing, missing_details = normalizer_obj.check_missing_values(data_ts)
+    
+    # --- PERBAIKAN UTAMA: Mengubah Logika Penanganan Missing Value ---
     if total_missing > 0:
-        st.warning(f"⚠️ Terdapat {total_missing} missing value pada data:")
-        st.write(missing_details)
-        data_ts_imputed = data_ts.fillna(method='ffill').fillna(method='bfill')
-        if data_ts_imputed.isnull().sum().sum() > 0:
-            st.error("Imputasi gagal menghilangkan semua missing values.")
-            return
-        else:
-            st.success("Missing values berhasil diimputasi menggunakan metode *forward & backward fill*.")
-            st.session_state.data_timeseries = data_ts_imputed
-            data_ts = data_ts_imputed
+        st.error(f"⚠️ DITEMUKAN {total_missing} MISSING VALUE.")
+        st.warning("Proses tidak dapat dilanjutkan. Mohon perbaiki file CSV Anda atau unggah data baru yang tidak memiliki nilai yang hilang.")
+        st.write("Detail Missing Value:")
+        st.dataframe(missing_details)
+        return # Menghentikan eksekusi fungsi di sini
+    
+    # JIKA TIDAK ADA MISSING VALUE, LANJUTKAN PROSES DI BAWAH INI
     else:
         st.success("✅ Tidak terdapat missing value pada data.")
-
-    st.subheader("2. Normalisasi Data")
-    # --- PERBAIKAN 4: Menambahkan Penjelasan Normalisasi ---
-    st.markdown("""
-    Normalisasi bertujuan untuk mengubah skala nilai pada data ke dalam rentang tertentu
-    """)
-    # --- Akhir Perbaikan 4 ---
-    try:
-        normalizer_obj.fit_scaler(data_ts)
-        normalized_values = normalizer_obj.normalize(data_ts[[normalizer_obj.data_column_name]])
-        
-        normalized_df_display = data_ts.copy()
-        normalized_df_display['Data Normalisasi'] = normalized_values
-        normalized_df_display.rename(columns={normalizer_obj.data_column_name: 'Data Asli'}, inplace=True)
-        
-        st.markdown("Berikut adalah perbandingan 5 data pertama sebelum dan sesudah normalisasi:")
-        st.dataframe(normalized_df_display[['Data Asli', 'Data Normalisasi']].head())
-
-        st.session_state.normalized_series = pd.Series(normalized_values.flatten(), index=data_ts.index)
-        st.session_state.normalizer = normalizer_obj
-        
-        st.subheader("3. Identifikasi Lag Signifikan (PACF)")
-        # --- PERBAIKAN 5: Memperjelas Interpretasi PACF ---
-        st.markdown("""
-        Plot **Partial Autocorrelation Function (PACF)** membantu kita mengidentifikasi hubungan langsung antara nilai saat ini dengan nilai-nilai sebelumnya (**lag**), setelah menghilangkan efek dari lag perantaranya.
-
-        **Cara Membaca Plot PACF:**
-        - **Sumbu Y:** Menunjukkan nilai korelasi parsial.
-        - **Sumbu X:** Menunjukkan urutan lag (lag 1, lag 2, dst.).
-        - **Area Biru:** Adalah batas signifikansi. Bar yang **keluar dari area biru** dianggap sebagai lag yang signifikan secara statistik.
-        
-        Lag-lag signifikan inilah yang akan kita gunakan sebagai variabel input untuk model RBFNN.
-        """)
-        # --- Akhir Perbaikan 5 ---
-        
-        lags_to_plot = st.slider("Jumlah lag untuk plot PACF:", min_value=10, max_value=min(60, len(st.session_state.normalized_series)//3), value=24)
-        fig_pacf = plot_pacf_only_streamlit(st.session_state.normalized_series, lags=lags_to_plot, series_name="Data Ternormalisasi")
-        st.pyplot(fig_pacf)
-
-        st.markdown("Berdasarkan plot di atas, masukkan lag-lag yang signifikan (pisahkan dengan koma):")
-        lags_input_str = st.text_input("Lag Signifikan:", st.session_state.significant_lags_input, key="lags_input_preprocess")
-        st.session_state.significant_lags_input = lags_input_str
-
-        # --- PERBAIKAN 6: Menambahkan Kesimpulan Halaman Pre-processing ---
         st.markdown("---")
-        st.success("✅ **Pre-processing Selesai!** Data tidak terdapat missing value, di normalisasi, dan telah diidentifikasi input yang relevan. Data siap untuk tahap pemodelan.")
-        # --- Akhir Perbaikan 6 ---
 
-        if st.button("Lanjut ke Pemodelan ➡️", key="preprocess_next"):
-            try:
-                if not [int(lag.strip()) for lag in lags_input_str.split(',') if lag.strip()]:
-                    st.error("Harap masukkan setidaknya satu lag yang valid.")
-                else:
-                    st.session_state.current_page = "Pemodelan"
-                    st.rerun()
-            except ValueError:
-                st.error("Format lag tidak valid. Harap masukkan angka yang dipisahkan koma.")
-    except Exception as e:
-        st.error(f"❌ Terjadi kesalahan saat normalisasi atau plot PACF: {e}")
+        st.subheader("2. Normalisasi Data")
+        st.markdown("""
+        Normalisasi bertujuan untuk mengubah skala nilai pada data ke dalam rentang tertentu, umumnya antara 0 dan 1. 
+        Hal ini sangat penting untuk model berbasis jarak seperti RBFNN agar tidak ada satu fitur pun yang mendominasi proses pembelajaran hanya karena skalanya lebih besar.
+        """)
+        try:
+            normalizer_obj.fit_scaler(data_ts)
+            normalized_values = normalizer_obj.normalize(data_ts[[normalizer_obj.data_column_name]])
+            
+            normalized_df_display = data_ts.copy()
+            normalized_df_display['Data Normalisasi'] = normalized_values
+            normalized_df_display.rename(columns={normalizer_obj.data_column_name: 'Data Asli'}, inplace=True)
+            
+            st.markdown("Berikut adalah perbandingan 5 data pertama sebelum dan sesudah normalisasi:")
+            st.dataframe(normalized_df_display[['Data Asli', 'Data Normalisasi']].head())
+
+            st.session_state.normalized_series = pd.Series(normalized_values.flatten(), index=data_ts.index)
+            st.session_state.normalizer = normalizer_obj
+            
+            st.markdown("---")
+            st.subheader("3. Identifikasi Lag Signifikan (PACF)")
+            st.markdown("""
+            Plot **Partial Autocorrelation Function (PACF)** membantu kita mengidentifikasi hubungan langsung antara nilai saat ini dengan nilai-nilai sebelumnya (**lag**), setelah menghilangkan efek dari lag perantaranya.
+
+            **Cara Membaca Plot PACF:**
+            - **Sumbu Y:** Menunjukkan nilai korelasi parsial.
+            - **Sumbu X:** Menunjukkan urutan lag (lag 1, lag 2, dst.).
+            - **Area Biru:** Adalah batas signifikansi. Bar yang **keluar dari area biru** dianggap sebagai lag yang signifikan secara statistik.
+            
+            Lag-lag signifikan inilah yang akan kita gunakan sebagai variabel input untuk model RBFNN.
+            """)
+            
+            lags_to_plot = st.slider("Jumlah lag untuk plot PACF:", min_value=10, max_value=min(60, len(st.session_state.normalized_series)//3), value=24)
+            fig_pacf = plot_pacf_only_streamlit(st.session_state.normalized_series, lags=lags_to_plot, series_name="Data Ternormalisasi")
+            st.pyplot(fig_pacf)
+
+            st.markdown("Berdasarkan plot di atas, masukkan lag-lag yang signifikan (pisahkan dengan koma):")
+            lags_input_str = st.text_input("Lag Signifikan:", st.session_state.significant_lags_input, key="lags_input_preprocess")
+            st.session_state.significant_lags_input = lags_input_str
+
+            st.markdown("---")
+            st.success("✅ **Pre-processing Selesai!** Data sudah bersih, ternormalisasi, dan siap untuk tahap pemodelan.")
+
+            if st.button("Lanjut ke Pemodelan ➡️", key="preprocess_next"):
+                try:
+                    if not [int(lag.strip()) for lag in lags_input_str.split(',') if lag.strip()]:
+                        st.error("Harap masukkan setidaknya satu lag yang valid.")
+                    else:
+                        st.session_state.current_page = "Pemodelan"
+                        st.rerun()
+                except ValueError:
+                    st.error("Format lag tidak valid. Harap masukkan angka yang dipisahkan koma.")
+        except Exception as e:
+            st.error(f"❌ Terjadi kesalahan saat normalisasi atau plot PACF: {e}")
+# --- Akhir Perbaikan ---
+
 
 def page_pemodelan():
     st.header("🛠️ Pemodelan RBFNN")
